@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Video Call</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #181818;
+            color: #f0f0f0;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            height: 100vh;
+        }
+        #video-container {
+            flex: 3;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: #282c34;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.5);
+            margin: 20px;
+            padding: 20px;
+            position: relative;
+        }
+        video {
+            border: 2px solid #61dafb;
+            border-radius: 10px;
+            width: 100%;
+            max-width: 600px;
+            height: auto;
+        }
+        #chat-container {
+            flex: 1;
+            background: #20232a;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.5);
+            margin: 20px;
+            padding: 10px;
+            height: calc(100vh - 40px);
+            display: flex;
+            flex-direction: column;
+            position: relative;
+        }
+        #chat-messages {
+            list-style-type: none;
+            padding: 0;
+            margin: 0;
+            flex: 1;
+            overflow-y: auto;
+            color: #f0f0f0;
+        }
+        #chat-messages li {
+            padding: 5px;
+            border-bottom: 1px solid #444;
+        }
+        #chat-box {
+            display: flex;
+            margin-top: 10px;
+        }
+        #message-input {
+            flex: 1;
+            padding: 10px;
+            border: 1px solid #444;
+            border-radius: 5px;
+            background-color: #333;
+            color: #f0f0f0;
+        }
+        #send-button, #voice-button, #upload-button, #transcript-button {
+            background-color: #61dafb;
+            border: none;
+            color: #fff;
+            padding: 10px;
+            margin-left: 5px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background-color 0.3s ease, transform 0.3s ease;
+        }
+        #send-button:hover, #voice-button:hover, #upload-button:hover, #transcript-button:hover {
+            background-color: #21a1f1;
+            transform: scale(1.05);
+        }
+        #voice-recorder {
+            display: none;
+            position: absolute;
+            bottom: 10px;
+            right: 10px;
+            background: #333;
+            border: 1px solid #444;
+            border-radius: 5px;
+            padding: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.5);
+        }
+        #voice-recorder button {
+            background-color: #61dafb;
+            color: #fff;
+            border: none;
+            padding: 10px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-top: 5px;
+        }
+        #voice-recorder button:hover {
+            background-color: #21a1f1;
+        }
+        #file-upload {
+            display: none;
+        }
+        .icon {
+            width: 20px;
+            height: 20px;
+            vertical-align: middle;
+            margin-right: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div id="video-container">
+        <video id="localVideo" autoplay muted></video>
+        <video id="remoteVideo" autoplay></video>
+    </div>
+    <div id="chat-container">
+        <ul id="chat-messages"></ul>
+        <div id="chat-box">
+            <input type="text" id="message-input" placeholder="Type your message...">
+            <button id="send-button">
+                <img src="https://img.icons8.com/material-outlined/24/ffffff/sent.png" class="icon" alt="Send">
+                Send
+            </button>
+            <button id="voice-button">
+                <img src="https://img.icons8.com/material-outlined/24/ffffff/microphone.png" class="icon" alt="Record">
+                Record
+            </button>
+            <input type="file" id="file-upload">
+            <button id="upload-button">
+                <img src="https://img.icons8.com/material-outlined/24/ffffff/upload.png" class="icon" alt="Upload">
+                Upload
+            </button>
+            <button id="transcript-button">
+                <img src="https://img.icons8.com/material-outlined/24/ffffff/save.png" class="icon" alt="Save">
+                Save Transcript
+            </button>
+        </div>
+    </div>
+    <div id="voice-recorder">
+        <button id="start-recording">Start Recording</button>
+        <button id="stop-recording">Stop Recording</button>
+    </div>
+    <script>
+        // Function to start video and audio streams
+        async function startMedia() {
+            const role = '{{ role }}'; // Get role from Flask template
+
+            try {
+                const constraints = {
+                    video: true,
+                    audio: role === 'student' // Only enable audio for student
+                };
+                const stream = await navigator.mediaDevices.getUserMedia(constraints);
+
+                // Set local video stream
+                const localVideo = document.getElementById('localVideo');
+                localVideo.srcObject = stream;
+
+                // For demonstration purposes, assume no remote stream
+                const remoteVideo = document.getElementById('remoteVideo');
+                if (role === 'student') {
+                    remoteVideo.srcObject = stream.clone(); // For demo purposes
+                } else {
+                    remoteVideo.srcObject = null; // No remote stream for teacher
+                }
+
+            } catch (error) {
+                console.error('Error accessing media devices.', error);
+                alert('Could not access your camera and/or microphone. Please check your permissions.');
+            }
+        }
+
+        // Start media when the page loads
+        window.onload = startMedia;
+
+        // Placeholder for JavaScript code to handle chat functionalities
+        document.getElementById('send-button').addEventListener('click', () => {
+            const messageInput = document.getElementById('message-input');
+            const message = messageInput.value;
+            if (message.trim()) {
+                const chatMessages = document.getElementById('chat-messages');
+                const messageElement = document.createElement('li');
+                messageElement.textContent = message;
+                chatMessages.appendChild(messageElement);
+                messageInput.value = '';
+            }
+        });
+
+        document.getElementById('voice-button').addEventListener('click', () => {
+            const voiceRecorder = document.getElementById('voice-recorder');
+            voiceRecorder.style.display = voiceRecorder.style.display === 'none' ? 'block' : 'none';
+        });
+
+        document.getElementById('start-recording').addEventListener('click', () => {
+            // Placeholder for starting voice recording
+        });
+
+        document.getElementById('stop-recording').addEventListener('click', () => {
+            // Placeholder for stopping voice recording
+        });
+    </script>
+</body>
+</html>
